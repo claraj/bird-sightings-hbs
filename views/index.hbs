@@ -6,10 +6,12 @@
 
   <form method="POST" action="/addBird">
 
-    Name:         <input name="name">                       <br>
-    Description:  <input name="description">                <br>
-    Average Eggs: <input name="averageEggs" type="number">  <br>
-    Endangered?   <input name="endangered" value="true" type="checkbox"> <br>  <!-- value="true" is the value sent to the server if the checkbox is checked. If the checkbox is not checked, then no key-value pair for endangered is sent -->
+    Name:           <input name="name" required>              <br>
+    Description:    <input name="description">                <br>
+    Average Eggs:   <input name="averageEggs" type="number" min="1" max="50">  <br>
+    Endangered?     <input name="endangered" value="true" type="checkbox">     <br>  <!-- value="true" is the value sent to the server if the checkbox is checked. If the checkbox is not checked, then no key-value pair for endangered is sent -->
+    Nest Materials: <input name="nestMaterials">              <br>
+    Nest Location:  <input name="nestLocation">               <br>
 
     <button type=submit>Submit</button>
 

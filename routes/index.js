@@ -14,11 +14,18 @@ router.get('/', function(req, res, next) {
     });
 });
 
+
 /* POST create new bird document */
 router.post('/addBird', function(req, res, next){
 
   // Use form data in req.body to create new Bird
   var bird = Bird(req.body);
+
+  // Nest the nest attributes to match the Bird schema
+  bird.nest = {
+    location: req.body.nestLocation,
+    materials: req.body.nestMaterials
+  };
 
   // Save the Bird object to DB as new Bird document
   bird.save().then( (birdDoc) => {
@@ -68,7 +75,7 @@ router.post('/addSighting', function(req, res, next){
 
   Bird.findOneAndUpdate(
     { _id: req.body._id },
-    { $push: { datesSeen: { $each: [req.body.date], $sort: -1 } } }, 
+    { $push: { datesSeen: { $each: [req.body.date], $sort: -1 } } },
     { runValidators: true } )
 
     .then( (updatedBirdDoc ) => {

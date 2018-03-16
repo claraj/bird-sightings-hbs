@@ -30,14 +30,20 @@ var birdSchema = new mongoose.Schema({
     {
       type: Date,
       required: [true, 'A date is required to add a new sighting.'],
-      validate: {validator: function(date) {
-        return date.getTime() <= Date.now();
+      validate: {
+        validator: function(date) {
+          return date.getTime() <= Date.now();
+        },
+        message: 'Date must be a valid date, and date must be now or in the past.'
       },
-      message: 'Date must be a valid date, and date must be now or in the past.'
+    }
+  ],
 
-    },
+  nest: {
+    location: String,
+    materials: String
   }
-]
+
 });
 
 var Bird = mongoose.model('Bird', birdSchema);
