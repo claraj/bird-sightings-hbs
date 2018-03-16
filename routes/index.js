@@ -38,6 +38,7 @@ router.post('/addBird', function(req, res, next){
   });
 });
 
+
 /* GET info about one bird */
 router.get('/bird/:_id', function(req, res, next){
   // Get the _id of the bird from req.params
@@ -45,14 +46,19 @@ router.get('/bird/:_id', function(req, res, next){
   Bird.findOne( { _id: req.params._id} )
     .then( (birdDoc) => {
       if (birdDoc) {    // If a bird with this id is found
-        console.log(birdDoc);  res.render('birdinfo', { title: birdDoc.name, bird: birdDoc } );
+
+        // datesSeen Array is already sorted
+        //birdDoc.datesSeen.sort(function(a, b) { return a.getTime() < b.getTime() });
+
+        res.render('birdinfo', { title: birdDoc.name, bird: birdDoc } );
       } else {          // else, if bird not found, birdDoc will be undefined, which JS considers to be false
-        res.status(404);       // Set status to 404 to indicate not found
-        next(Error('Bird not found')); // Invokes 404 error handler
+        var err = Error('Bird not found');  // Create a new Error
+        err.status = 404;   // Set it's status to 404
+        throw err; // Causes the chained catch function to run
       }
     })
     .catch( (err) => {
-      next(err);  // Database errors
+      next(err);  // 404 and database errors
     });
 });
 
@@ -60,19 +66,37 @@ router.get('/bird/:_id', function(req, res, next){
 /* POST a new sighting for a bird */
 router.post('/addSighting', function(req, res, next){
 
-  Bird.findOneAndUpdate( { _id: req.body._id }, { $push: { datesSeen: req.body.date } } )
+  Bird.findOneAndUpdate(
+    { _id: req.body._id },
+    { $push: { datesSeen: { $each: [req.body.date], $sort: -1 } } }, 
+    { runValidators: true } )
+
     .then( (updatedBirdDoc ) => {
       if (updatedBirdDoc) {     // If no document matching this query, updatedBirdDoc will be undefined
         res.redirect(`/bird/${req.body._id}`);  // redirect to this bird's info page
       } else {
-        res.status(404);
-        next(Error("Adding sighting error, bird not found"));
+        var err = Error("Adding sighting error, bird not found");
+        err.status = 404;
+        throw err;
       }
     })
     .catch( (err) => {
-      next(err);
+
+      if (err.name === 'CastError') {
+        req.flash('error', 'Date must be in a valid format');
+        res.redirect(`/bird/${req.body._id}`);
+      }
+      else if (err.name === 'ValidationError') {
+        req.flash('error', err.message);
+        res.redirect(`/bird/${req.body._id}`);
+      }
+      else {
+        next(err);
+      }
     });
 
 });
+
+
 
 module.exports = router;
